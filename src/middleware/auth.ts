@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { jwtSecret } from "../modules/auth/auth.service";
 import { pool } from "../config/db";
 
-const auth = () => {
+const auth = (...roles: ("admin" | "customer")[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const authorization = req.headers.authorization;
     if (!authorization) {
@@ -29,6 +29,13 @@ const auth = () => {
     }
 
     req.user = decoded;
+    if (roles.length && !roles.includes(decoded.role)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Forbidden: You do not have permission to access this resource",
+      });
+    }
     next();
   };
 };
