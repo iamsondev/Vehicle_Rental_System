@@ -54,7 +54,18 @@ const getVehicles = async () => {
     `);
   return result.rows;
 };
+
+const getSingleVehicle = async (id: number) => {
+  const result = await pool.query(`SELECT * FROM vehicles WHERE id = $1`, [id]);
+
+  if (result.rows.length === 0) {
+    throw new Error("Vehicle not found");
+  }
+
+  return result.rows[0];
+};
 export const vehiclesService = {
   addVehicles,
   getVehicles,
+  getSingleVehicle,
 };

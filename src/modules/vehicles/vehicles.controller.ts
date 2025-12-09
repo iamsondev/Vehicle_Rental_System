@@ -32,8 +32,36 @@ const getVehicles = async (req: Request, res: Response) => {
     });
   }
 };
+const getSingleVehicle = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.vehicleId!, 10);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid vehicle ID",
+        data: [],
+      });
+    }
+
+    const vehicle = await vehiclesService.getSingleVehicle(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Specific vehicle retrieved successfully",
+      data: vehicle,
+    });
+  } catch (err: any) {
+    res.status(404).json({
+      success: false,
+      message: err.message,
+      data: [],
+    });
+  }
+};
 
 export const vehiclesController = {
   addVehicles,
   getVehicles,
+  getSingleVehicle,
 };
