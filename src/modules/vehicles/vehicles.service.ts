@@ -1,3 +1,4 @@
+import { Result } from "pg";
 import { pool } from "../../config/db";
 
 const addVehicles = async (payload: Record<string, unknown>) => {
@@ -64,8 +65,32 @@ const getSingleVehicle = async (id: number) => {
 
   return result.rows[0];
 };
+
+const updateVehicle = async (payload: any) => {
+  const { id, vehicle_name, type, daily_rent_price, availability_status } =
+    payload;
+
+  const result = await pool.query(
+    `
+    UPDATE vehicles
+    SET
+      vehicle_name = $1,
+      type = $2,
+      daily_rent_price = $3,
+      availability_status = $4,
+      updated_at = NOW()
+    WHERE id = $5
+    RETURNING *;
+    `,
+    [vehicle_name, type, daily_rent_price, availability_status, id]
+  );
+
+  return result.rows[0];
+};
+
 export const vehiclesService = {
   addVehicles,
   getVehicles,
   getSingleVehicle,
+  updateVehicle,
 };
