@@ -5,5 +5,6 @@ import { Roles } from "../auth/auth.constant";
 
 const router = express.Router();
 
-router.post("/", vehiclesController.addVehicles);
+router.post("/", auth(Roles.admin), vehiclesController.addVehicles);
+router.get("/", vehiclesController.getVehicles);
 export const vehiclesRouter = router;
