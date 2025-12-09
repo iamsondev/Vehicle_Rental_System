@@ -17,7 +17,6 @@ const auth = (...roles: ("admin" | "customer")[]) => {
     const token = bearer[1];
 
     const decoded = jwt.verify(token as string, jwtSecret) as JwtPayload;
-    console.log(decoded);
     const result = await pool.query(
       `
       SELECT * FROM users WHERE email=$1

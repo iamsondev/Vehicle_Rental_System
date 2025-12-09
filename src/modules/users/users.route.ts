@@ -7,6 +7,15 @@ const router = express.Router();
 
 router.post("/", userController.createUser);
 router.get("/", auth(Roles.admin), userController.getUser);
-router.get("/singleuser", auth(Roles.customer), userController.getSingleUser);
+router.get(
+  "/singleuser",
+  auth(Roles.customer, Roles.admin),
+  userController.getSingleUser
+);
+router.put(
+  "/:userId",
+  auth(Roles.admin, Roles.customer),
+  userController.updateUser
+);
 
 export const userRoute = router;

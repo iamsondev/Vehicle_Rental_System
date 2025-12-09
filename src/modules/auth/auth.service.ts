@@ -5,10 +5,12 @@ import config from "../../config";
 
 export const jwtSecret = config.jwt_secret;
 const signUpUser = async (payload: Record<string, unknown>) => {
-  const { name, email, password, phone, role } = payload;
+  let { name, email, password, phone } = payload;
+  email = (email as string).toLowerCase();
   if (!password || (password as string).length < 6) {
     throw new Error("Password must be at least 6 characters long");
   }
+  const role = "customer";
 
   const hashedPass = await bcrypt.hash(password as string, 12);
   const result = await pool.query(

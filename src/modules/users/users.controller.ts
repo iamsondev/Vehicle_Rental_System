@@ -50,8 +50,46 @@ const getSingleUser = async (req: Request, res: Response) => {
   }
 };
 
+const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { name, email, role } = req.body;
+    const requesterRole = (req.user as any).role;
+
+    let newRole;
+    if (role && requesterRole === "admin") {
+      newRole = role;
+    }
+
+    const result = await userService.updateUser(
+      name,
+      email?.toLowerCase(),
+      newRole,
+      req.params.userId as string
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "user not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "user data updated successfully",
+      data: result.rows[0],
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
 export const userController = {
   createUser,
   getUser,
   getSingleUser,
+  updateUser,
 };
