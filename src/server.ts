@@ -5,6 +5,7 @@ import config from "./config";
 import { authRouter } from "./modules/auth/auth.route";
 import { vehiclesRouter } from "./modules/vehicles/vehicles.route";
 import { adminRouter } from "./modules/admin/admin.route";
+import { bookingsRouter } from "./modules/bokkings/bookings.route";
 
 const app = express();
 const port = config.port;
@@ -21,12 +22,18 @@ app.get("/", (req: Request, res: Response) => {
 });
 // auth
 app.use("/api/v1/auth", authRouter);
+
 // user
 app.use("/api/v1/users", userRoute);
+
 // admin
 app.use("/api/v1/admin", adminRouter);
+
 // vehicles
 app.use("/api/v1/vehicles", vehiclesRouter);
+
+// booking
+app.use("/api/v1/bookings", bookingsRouter);
 
 app.listen(port, () => {
   console.log(`server is running on port ${port}`);
