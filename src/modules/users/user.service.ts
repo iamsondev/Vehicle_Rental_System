@@ -15,18 +15,21 @@ const createUser = async (payload: Record<string, unknown>) => {
 
 const getUser = async () => {
   const result = await pool.query(`
-    SELECT id,name,email,phone,created_at,updated_at FROM users
-    `);
-  return result;
+    SELECT id, name, email, phone, role FROM users
+  `);
+  return result.rows;
 };
-const getSingleUser = async (email: string) => {
+const getSingleUser = async (id: number) => {
   const result = await pool.query(
-    `
-    SELECT id,name,email,phone,created_at,updated_at FROM users WHERE email=$1
-    `,
-    [email]
+    `SELECT id, name, email, phone, role FROM users WHERE id = $1`,
+    [id]
   );
-  return result;
+
+  if (result.rows.length === 0) {
+    throw new Error("User not found");
+  }
+
+  return result.rows[0];
 };
 
 const updateUser = async (

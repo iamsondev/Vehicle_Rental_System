@@ -23,7 +23,7 @@ const getUser = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "users retrieved successfully",
-      data: result.rows,
+      data: result,
     });
   } catch (err: any) {
     res.status(500).json({
@@ -35,15 +35,22 @@ const getUser = async (req: Request, res: Response) => {
 
 const getSingleUser = async (req: Request, res: Response) => {
   try {
-    const email = req.user?.email;
-    const result = await userService.getSingleUser(email);
-    res.status(201).json({
+    const userId = parseInt(req.params.userId as string, 10);
+    if (isNaN(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user ID" });
+    }
+
+    const user = await userService.getSingleUser(userId);
+
+    res.status(200).json({
       success: true,
-      message: "users retrieved successfully",
-      data: result.rows,
+      message: "User retrieved successfully",
+      data: user,
     });
   } catch (err: any) {
-    res.status(500).json({
+    res.status(404).json({
       success: false,
       message: err.message,
     });

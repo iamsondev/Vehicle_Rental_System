@@ -42,20 +42,46 @@ const createBooking = async (payload: Record<string, any>) => {
 };
 
 const getBookings = async (user: any) => {
+  let bookingsResult;
+
   if (user.role === "admin") {
-    const result = await pool.query(`
-      SELECT * FROM bookings
-    `);
-    return result.rows;
+    bookingsResult = await pool.query(`SELECT * FROM bookings`);
   } else {
-    const result = await pool.query(
-      `
-      SELECT * FROM bookings WHERE customer_id=$1
-    `,
+    bookingsResult = await pool.query(
+      `SELECT * FROM bookings WHERE customer_id=$1`,
       [user.id]
     );
-    return result.rows;
   }
+
+  const bookings = bookingsResult.rows;
+  const finalBookings = [];
+
+  for (const booking of bookings) {
+    const vehicle = await pool.query(
+      `SELECT vehicle_name, registration_number, type FROM vehicles WHERE id=$1`,
+      [booking.vehicle_id]
+    );
+
+    if (user.role === "admin") {
+      const customer = await pool.query(
+        `SELECT name, email FROM users WHERE id=$1`,
+        [booking.customer_id]
+      );
+
+      finalBookings.push({
+        ...booking,
+        customer: customer.rows[0],
+        vehicle: vehicle.rows[0],
+      });
+    } else {
+      finalBookings.push({
+        ...booking,
+        vehicle: vehicle.rows[0],
+      });
+    }
+  }
+
+  return finalBookings;
 };
 
 const updateBookings = async (

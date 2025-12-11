@@ -42,13 +42,21 @@ const addVehicles = async (payload: Record<string, unknown>) => {
 
 const getVehicles = async () => {
   const result = await pool.query(`
-    SELECT * FROM vehicles
-    `);
+    SELECT id, vehicle_name, type, registration_number, daily_rent_price, availability_status
+    FROM vehicles
+  `);
   return result.rows;
 };
 
 const getSingleVehicle = async (id: number) => {
-  const result = await pool.query(`SELECT * FROM vehicles WHERE id = $1`, [id]);
+  const result = await pool.query(
+    `
+    SELECT id, vehicle_name, type, registration_number, daily_rent_price, availability_status
+    FROM vehicles
+    WHERE id = $1
+    `,
+    [id]
+  );
 
   if (result.rows.length === 0) {
     throw new Error("Vehicle not found");
@@ -71,7 +79,7 @@ const updateVehicle = async (payload: any) => {
       availability_status = $4,
       updated_at = NOW()
     WHERE id = $5
-    RETURNING *;
+     RETURNING id, vehicle_name, type, registration_number, daily_rent_price, availability_status;
     `,
     [vehicle_name, type, daily_rent_price, availability_status, id]
   );
