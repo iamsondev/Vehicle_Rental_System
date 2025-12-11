@@ -27,7 +27,6 @@ const createBooking = async (payload: Record<string, any>) => {
     [customer_id, vehicle_id, rent_start_date, rent_end_date, total_price]
   );
 
-  // Update vehicle availability
   await pool.query(
     `UPDATE vehicles SET availability_status='booked' WHERE id=$1`,
     [vehicle_id]
@@ -42,6 +41,91 @@ const createBooking = async (payload: Record<string, any>) => {
   };
 };
 
+const getBookings = async (user: any) => {
+  if (user.role === "admin") {
+    const result = await pool.query(`
+      SELECT * FROM bookings
+    `);
+    return result.rows;
+  } else {
+    const result = await pool.query(
+      `
+      SELECT * FROM bookings WHERE customer_id=$1
+    `,
+      [user.id]
+    );
+    return result.rows;
+  }
+};
+
+const updateBookings = async (
+  bookingId: number,
+  status: "cancelled" | "returned",
+  user: any
+) => {
+  const bookingRes = await pool.query(`SELECT * FROM bookings WHERE id=$1`, [
+    bookingId,
+  ]);
+  if (!bookingRes.rows.length) throw new Error("Booking not found");
+
+  const booking = bookingRes.rows[0];
+
+  if (status === "cancelled") {
+    if (user.role !== "customer") {
+      throw new Error("Only customers can cancel booking");
+    }
+
+    if (booking.customer_id !== user.id) {
+      throw new Error("You can cancel only your own booking");
+    }
+
+    if (new Date() >= new Date(booking.rent_start_date)) {
+      throw new Error("You can cancel only before start date");
+    }
+
+    const result = await pool.query(
+      `UPDATE bookings SET status='cancelled', updated_at=NOW()
+       WHERE id=$1 RETURNING *`,
+      [bookingId]
+    );
+
+    return {
+      message: "Booking cancelled successfully",
+      data: result.rows[0],
+    };
+  }
+
+  if (status === "returned") {
+    if (user.role !== "admin") {
+      throw new Error("Only admin can mark booking as returned");
+    }
+
+    const result = await pool.query(
+      `UPDATE bookings SET status='returned', updated_at=NOW()
+       WHERE id=$1 RETURNING *`,
+      [bookingId]
+    );
+
+    await pool.query(
+      `UPDATE vehicles SET availability_status='available'
+       WHERE id=$1`,
+      [booking.vehicle_id]
+    );
+
+    return {
+      message: "Booking marked as returned. Vehicle is now available",
+      data: {
+        ...result.rows[0],
+        vehicle: { availability_status: "available" },
+      },
+    };
+  }
+
+  throw new Error("Invalid status");
+};
+
 export const bookingsService = {
   createBooking,
+  getBookings,
+  updateBookings,
 };

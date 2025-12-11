@@ -10,4 +10,16 @@ router.post(
   bookingsController.createBooking
 );
 
+router.get(
+  "/",
+  auth(Roles.admin, Roles.customer),
+  bookingsController.getBookings
+);
+
+router.put(
+  "/:bookingId",
+  auth(Roles.admin, Roles.customer),
+  bookingsController.updateBookings
+);
+
 export const bookingsRouter = router;
