@@ -28,32 +28,40 @@ const signUpUser = async (payload: Record<string, unknown>) => {
 };
 
 const signinUser = async (email: string, password: string) => {
-  const result = await pool.query(
-    `
-    SELECT * FROM users WHERE email=$1
-    `,
-    [email]
-  );
-  if (result.rows.length === 0) {
-    throw new Error("user not found");
-  }
-  const userPassword = result.rows[0].password;
-  const matchedPassword = await bcrypt.compare(password, userPassword);
+  email = email.toLowerCase();
+  const result = await pool.query(`SELECT * FROM users WHERE email=$1`, [
+    email,
+  ]);
 
+  if (result.rows.length === 0) {
+    throw new Error("User not found");
+  }
+
+  const user = result.rows[0];
+  const matchedPassword = await bcrypt.compare(password, user.password);
   if (!matchedPassword) {
-    throw new Error("invalid");
+    throw new Error("Invalid credentials");
   }
 
   const jwtPayload = {
-    id: result.rows[0].id,
-    name: result.rows[0].name,
-    email: result.rows[0].email,
-    role: result.rows[0].role,
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
   };
 
   const token = jwt.sign(jwtPayload, jwtSecret, { expiresIn: "10d" });
 
-  return { token, result: result.rows[0] };
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+    },
+  };
 };
 
 export const authService = {
