@@ -3,14 +3,15 @@ import { vehiclesService } from "./vehicles.service";
 
 const addVehicles = async (req: Request, res: Response) => {
   try {
-    const vehicles = await vehiclesService.addVehicles(req.body);
+    const vehicle = await vehiclesService.addVehicles(req.body);
+
     res.status(201).json({
       success: true,
-      message: "add vehicles successfully",
-      data: vehicles,
+      message: "Vehicle created successfully",
+      data: vehicle,
     });
   } catch (err: any) {
-    res.status(401).json({
+    res.status(400).json({
       success: false,
       message: err.message,
     });

@@ -17,27 +17,17 @@ const addVehicles = async (payload: Record<string, unknown>) => {
   };
 
   const types = ["car", "bike", "van", "suv"];
-  if (!types.includes(type)) {
-    throw new Error("invalid vehicle type");
-  }
-
-  if (daily_rent_price < 0) {
+  if (!types.includes(type)) throw new Error("Invalid vehicle type");
+  if (daily_rent_price < 0)
     throw new Error("daily_rent_price must be positive");
-  }
 
   const status = ["available", "booked"];
-  if (!status.includes(availability_status)) {
+  if (!status.includes(availability_status))
     throw new Error("Invalid availability status");
-  }
 
   const result = await pool.query(
-    `
-    INSERT INTO vehicles (vehicle_name,
-    type,
-    registration_number,
-    daily_rent_price,
-    availability_status) VALUES ($1, $2, $3, $4, $5) RETURNING *
-    `,
+    `INSERT INTO vehicles (vehicle_name, type, registration_number, daily_rent_price, availability_status)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id, vehicle_name, type, registration_number, daily_rent_price, availability_status`,
     [
       vehicle_name,
       type,
@@ -46,7 +36,8 @@ const addVehicles = async (payload: Record<string, unknown>) => {
       availability_status,
     ]
   );
-  return result;
+
+  return result.rows[0];
 };
 
 const getVehicles = async () => {
